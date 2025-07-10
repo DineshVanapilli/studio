@@ -9,11 +9,6 @@ import PortInfo from "@/components/local-logger/port-info";
 export default function Home() {
   const [submittedData, setSubmittedData] = useState<FormData | null>(null);
 
-  const handleFormSubmit = (data: FormData) => {
-    setSubmittedData(data);
-    console.log("Form Submitted:", data);
-  };
-
   return (
     <>
       <Logger />
@@ -28,7 +23,7 @@ export default function Home() {
             </p>
           </header>
 
-          <UserForm onSubmit={handleFormSubmit} />
+          <UserForm onServerSubmit={setSubmittedData} />
 
           {submittedData && <SubmittedData data={submittedData} />}
 

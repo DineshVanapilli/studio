@@ -15,6 +15,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Send } from 'lucide-react';
+import { handleFormAction } from "@/app/actions";
+import { useTransition } from "react";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -24,10 +26,12 @@ const formSchema = z.object({
 export type FormData = z.infer<typeof formSchema>;
 
 interface UserFormProps {
-  onSubmit: (data: FormData) => void;
+  onServerSubmit: (data: FormData) => void;
 }
 
-export default function UserForm({ onSubmit }: UserFormProps) {
+export default function UserForm({ onServerSubmit }: UserFormProps) {
+  const [isPending, startTransition] = useTransition();
+
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -36,10 +40,26 @@ export default function UserForm({ onSubmit }: UserFormProps) {
     },
   });
 
-  function handleFormSubmit(values: FormData) {
-    onSubmit(values);
-    form.reset();
-  }
+  const onSubmit = (formData: FormData) => {
+    const data = new FormData();
+    data.append('name', formData.name);
+    data.append('age', String(formData.age));
+
+    startTransition(async () => {
+      const result = await handleFormAction(data);
+      if (result.data) {
+        onServerSubmit(result.data);
+        form.reset();
+      } else if (result.errors) {
+        if (result.errors.name) {
+          form.setError('name', { message: result.errors.name[0] });
+        }
+        if (result.errors.age) {
+          form.setError('age', { message: result.errors.age[0] });
+        }
+      }
+    });
+  };
 
   return (
     <Card className="w-full shadow-md">
@@ -49,7 +69,7 @@ export default function UserForm({ onSubmit }: UserFormProps) {
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <FormField
               control={form.control}
               name="name"
@@ -76,9 +96,9 @@ export default function UserForm({ onSubmit }: UserFormProps) {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+            <Button type="submit" disabled={isPending} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
               <Send className="mr-2 h-4 w-4" />
-              Submit
+              {isPending ? 'Submitting...' : 'Submit'}
             </Button>
           </form>
         </Form>
