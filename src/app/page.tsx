@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Logger from "@/components/local-logger/logger";
 import UserForm, { type FormData } from "@/components/local-logger/user-form";
 import SubmittedData from "@/components/local-logger/submitted-data";
 import PortInfo from "@/components/local-logger/port-info";
@@ -11,7 +10,6 @@ export default function Home() {
 
   return (
     <>
-      <Logger />
       <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4 sm:p-8 md:p-12">
         <div className="w-full max-w-lg space-y-8">
           <header className="text-center">
